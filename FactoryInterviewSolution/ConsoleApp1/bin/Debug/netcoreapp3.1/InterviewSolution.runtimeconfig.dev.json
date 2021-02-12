@@ -1,0 +1,8 @@
+{
+  "runtimeOptions": {
+    "additionalProbingPaths": [
+      "C:\\Users\\jtwar\\.dotnet\\store\\|arch|\\|tfm|",
+      "C:\\Users\\jtwar\\.nuget\\packages"
+    ]
+  }
+}
