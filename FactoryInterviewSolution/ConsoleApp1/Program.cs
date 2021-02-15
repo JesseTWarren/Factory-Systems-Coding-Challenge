@@ -115,12 +115,16 @@ namespace FactorySystemsCodingChallenge
             //setting up the columns for the table
             databaseOutput.Clear();
             databaseOutput.Columns.Add("Test ID");
+            databaseOutput.Columns.Add("Min X");
+            databaseOutput.Columns.Add("Min Y");
             databaseOutput.Columns.Add("Min Height");
-            databaseOutput.Columns.Add("Min Location");
+            databaseOutput.Columns.Add("Min PlaneID");
             databaseOutput.Columns.Add("Min Time");
             databaseOutput.Columns.Add("Min Operator");
+            databaseOutput.Columns.Add("Max X");
+            databaseOutput.Columns.Add("Max Y");
             databaseOutput.Columns.Add("Max Height");
-            databaseOutput.Columns.Add("Max Location");
+            databaseOutput.Columns.Add("Max PlaneID");
             databaseOutput.Columns.Add("Max Time");
             databaseOutput.Columns.Add("Max Operator");
             databaseOutput.Columns.Add("Mean Height");
@@ -133,12 +137,16 @@ namespace FactorySystemsCodingChallenge
             {
                 row = databaseOutput.NewRow();
                 row["Test ID"] = valList[x];
+                row["Min X"] = calculateLocX((double)calculateMin((int)valList[x]));
+                row["Min Y"] = calculateLocY((double)calculateMin((int)valList[x]));
                 row["Min Height"] = calculateMin((int)valList[x]);
-                row["Min Location"] = calcLocate((double)calculateMin((int)valList[x]));
+                row["Min PlaneID"] = calcPlaneID((double)calculateMin((int)valList[x]));
                 row["Min Time"] = calcTime((double)calculateMin((int)valList[x]));
                 row["Min Operator"] = calcOperator((double)calculateMin((int)valList[x]));
+                row["Max X"] = calculateLocX((double)calculateMax((int)valList[x]));
+                row["Max Y"] = calculateLocY((double)calculateMax((int)valList[x]));
                 row["Max Height"] = calculateMax((int)valList[x]);
-                row["Max Location"] = calcLocate((double)calculateMax((int)valList[x]));
+                row["Max PlaneID"] = calcPlaneID((double)calculateMax((int)valList[x]));
                 row["Max Time"] = calcTime((double)calculateMax((int)valList[x]));
                 row["Max Operator"] = calcOperator((double)calculateMax((int)valList[x]));
                 row["Mean Height"] = calculateMean((int)valList[x]);
@@ -182,6 +190,20 @@ namespace FactorySystemsCodingChallenge
             Console.WriteLine("CSV Generated at " + strFilePath);
         }
 
+        
+        //this method calculates x using the min or max height of the test
+        static double calculateLocX(double calc)
+        {
+            double calcLocX = (double)databaseInput.Compute("Min(x)", "height=" + calc);
+            return calcLocX;
+        }
+        //this method calculates y using the min or height of the test
+        static double calculateLocY(double calc)
+        {
+            double calcLocY = (double)databaseInput.Compute("Min(y)", "height=" + calc);
+            return calcLocY;
+
+        }
         //this method calculates minimum height by using a compute function alongside the parameterized test uid
         static double calculateMin(int test_uid)
         {
@@ -198,7 +220,7 @@ namespace FactorySystemsCodingChallenge
             return maxVar;
         }
         //this method finds the location using a parameterized datatable query
-        static string calcLocate(double height)
+        static string calcPlaneID(double height)
         {
             string calcLoc = (from DataRow dr in databaseInput.Rows
                               where (double)dr["height"] == height
