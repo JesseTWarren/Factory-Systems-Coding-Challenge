@@ -19,7 +19,6 @@ namespace FactorySystemsCodingChallenge
 {
     public class CodingChallenge
     {
-
         static DataTable databaseInput = new DataTable();
 
         static DataTable databaseOutput = new DataTable();
@@ -38,8 +37,6 @@ namespace FactorySystemsCodingChallenge
         private static SQLiteConnection sql_conn;
         static void Main(string[] args)
         {
-
-
             //Here we collect the address of the database from the user and validate it.
             sql_conn = databasePrompt();
             //calling the connection to write the rows for each test and exclude invalid tests
@@ -112,12 +109,12 @@ namespace FactorySystemsCodingChallenge
 
             return valList;
         }
-        //this moethod sets up our DataTable for databaseOutput
+        //this method sets up our DataTable for databaseOutput
         static DataTable createReportTable()
         {
             //setting up the columns for the table
             databaseOutput.Clear();
-            databaseOutput.Columns.Add("test_uid");
+            databaseOutput.Columns.Add("Test ID");
             databaseOutput.Columns.Add("Min Height");
             databaseOutput.Columns.Add("Min Location");
             databaseOutput.Columns.Add("Min Time");
@@ -135,7 +132,7 @@ namespace FactorySystemsCodingChallenge
             for (int x = 0; x < valList.Length; x++)
             {
                 row = databaseOutput.NewRow();
-                row["test_uid"] = valList[x];
+                row["Test ID"] = valList[x];
                 row["Min Height"] = calculateMin((int)valList[x]);
                 row["Min Location"] = calcLocate((double)calculateMin((int)valList[x]));
                 row["Min Time"] = calcTime((double)calculateMin((int)valList[x]));
