@@ -145,10 +145,10 @@ namespace FactorySystemsCodingChallenge
                 row["Height Range"] = calculateRange(ref maxVar, ref minVar);
                 row["Average Roughness"] = calculateAvgRough((int)valList[x]);
                 row["Root Mean Square Roughness"] = calculcateRootMeanSquareRoughness((int)valList[x]);
-              //adding our data row to the table
+                //adding our data row to the table
                 databaseOutput.Rows.Add(row);
 
-            }     
+            }
             return databaseOutput;
         }
 
@@ -156,15 +156,15 @@ namespace FactorySystemsCodingChallenge
         static void printToCSV(DataTable dim)
         {//folder location
             string folderPath = @"C:\CSV";
-         //file location
+            //file location
             string strFilePath = @"C:\CSV\FactorySystemsSummary.csv";
-         //creating our column names to print
+            //creating our column names to print
             string[] columnNames = dim.Columns.Cast<DataColumn>().
                                               Select(column => column.ColumnName).
                                               ToArray();
 
             sb.AppendLine(string.Join(",", columnNames));
-         //appending our database to our stringbuilder
+            //appending our database to our stringbuilder
             foreach (DataRow row in dim.Rows)
             {
                 string[] fields = row.ItemArray.Select(field => field.ToString()).
@@ -172,52 +172,52 @@ namespace FactorySystemsCodingChallenge
                 sb.AppendLine(string.Join(",", fields));
             }
 
-         //if the directory doesn't exist, create it
+            //if the directory doesn't exist, create it
             if (!Directory.Exists(folderPath))
             {
                 Directory.CreateDirectory(folderPath);
             }
-         //writing the datatable and giving notification to the user.
+            //writing the datatable and giving notification to the user.
             File.WriteAllText(strFilePath, sb.ToString());
             Console.WriteLine("CSV Generated at " + strFilePath);
         }
 
         //this method calculates minimum height by using a compute function alongside the parameterized test uid
-        static double calculateMin(int i)
+        static double calculateMin(int test_uid)
         {
 
-            double min = (double)databaseInput.Compute("Min(height)", "test_uid=" + i);//come back for this
+            double min = (double)databaseInput.Compute("Min(height)", "test_uid=" + test_uid);//come back for this
             minVar = min;
             return minVar;
         }
         //this method calculates max height by using a compute function alongside the parameterized test uid
-        static double calculateMax(int i)
+        static double calculateMax(int test_uid)
         {
-            double max = (double)databaseInput.Compute("Max(height)", "test_uid=" + i);
+            double max = (double)databaseInput.Compute("Max(height)", "test_uid=" + test_uid);
             maxVar = max;
             return maxVar;
         }
         //this method finds the location using a parameterized datatable query
-        static string calcLocate(double vat)
+        static string calcLocate(double height)
         {
             string calcLoc = (from DataRow dr in databaseInput.Rows
-                               where (double)dr["height"] == vat
-                               select (string)dr["PlaneID"]).SingleOrDefault();
+                              where (double)dr["height"] == height
+                              select (string)dr["PlaneID"]).SingleOrDefault();
 
             return calcLoc;
         }
         //this method finds the sTime field using a parameterized datatable query
-        static DateTime? calcTime(double vat)
+        static DateTime? calcTime(double height)
         {
             DateTime? sTime = (from DataRow dr in databaseInput.Rows
-                               where (double)dr["height"] == vat
+                               where (double)dr["height"] == height
                                select (DateTime?)dr["sTime"]).SingleOrDefault();
 
             return sTime;
 
         }
         //this method finds the operator for the test using a parameterized query. this query has to explicitly handle null values.
-        static string calcOperator(double vat)
+        static string calcOperator(double height)
         {
             string driver = "";
 
@@ -225,7 +225,7 @@ namespace FactorySystemsCodingChallenge
             {
                 foreach (DataRow dr in databaseInput.Rows)
                 {
-                    if (dr.Field<double>("height") == vat)
+                    if (dr.Field<double>("height") == height)
                     {
                         if (string.IsNullOrWhiteSpace(dr.Field<string>("Operator")))
                         {
@@ -241,62 +241,72 @@ namespace FactorySystemsCodingChallenge
                 }
             }
             return driver;
-        }         
+        }
         //this method calcualates the mean using a datatable compute function
-       static double calculateMean(int i)
+        static double calculateMean(int test_uid)
         {
-                double avg = (double)databaseInput.Compute("AVG(height)", "test_uid=" + i);
-                avgVar = avg;
-                return avgVar;
+            double avg = (double)databaseInput.Compute("AVG(height)", "test_uid=" + test_uid);
+            avgVar = avg;
+            return avgVar;
         }
         //this methid calculates the range using the minVar and maxVar variables updated during the creation loop
-       static double calculateRange(ref double x, ref double m)
+        static double calculateRange(ref double x, ref double m)
         {
-                double range = x - m;
-                rangeVar = range;
-                return rangeVar;
+            double range = x - m;
+            rangeVar = range;
+            return rangeVar;
         }
         //this method fetches a column to count up from in the table for the number of sums, then I use a linq statement to evaluate for the sum of the absolute values
         //this is evaluated against the number of values to achieve average roughness calculation
-       static double calculateAvgRough(int i)
+        static double calculateAvgRough(int test_uid)
         {
-                double totalSum;
-                int num = 0;
-                double avgRoughVar = 0;
-                DataRow[] data = databaseInput.Select("test_uid= " + i);
-                foreach (DataRow rows in data)
+            int num = 0;
+            double avg = calculateMean(test_uid);
+            double heightTool = 0; ;
+
+            foreach (DataRow dr in databaseInput.Rows)
+            {
+                if (dr.Field<Int64>("test_uid") == test_uid)
                 {
+                    heightTool+= Math.Abs(dr.Field<double>("height")-avg);
                     num++;
                 }
-                var totalmath = from r in data.AsEnumerable() select Math.Abs((r.Field<double>("height")));
-                totalSum = totalmath.Sum(x => x);
+            }
+            
+           double avgRoughVar = heightTool/ num;                
 
-                avgRoughVar = totalSum / num;
+            
 
-                return avgRoughVar;
+           return avgRoughVar;
 
         }
-       //this method calculates RMSR by fetching the number of the sums and then evaluating the total sum to the power of two 
-       //then placing the total divided by the sum to another power.
-       static double calculcateRootMeanSquareRoughness(int i)
-        {
-                int num = 0;
-                double totalSum;
-                double rootMeanSquareVar;
 
-                DataRow[] data = databaseInput.Select("test_uid= " + i);
-                foreach (DataRow rows in data)
+
+        //this method calculates RMSR by fetching the number of the sums and then evaluating the total sum to the power of two 
+        //then placing the total divided by the sum to another power.
+        static double calculcateRootMeanSquareRoughness(int test_uid)
+        {
+            
+            double rootMeanSquareVar;
+            double avg = calculateMean(test_uid);
+            double heightTool = 0;
+            int num = 0;
+
+            foreach(DataRow dr in databaseInput.Rows)
+            {
+                if (dr.Field<Int64>("test_uid") == test_uid)
                 {
+                    heightTool+=Math.Pow(dr.Field<double>("height")-avg, 2.0);
                     num++;
                 }
-                var totalmath = from r in data.AsEnumerable() select Math.Pow((r.Field<double>("height")), 2.0);
+            }
+            rootMeanSquareVar = Math.Sqrt(heightTool / num);
 
-                totalSum = totalmath.Sum(x => x);
-                rootMeanSquareVar = Math.Pow((double)(totalSum / num), 0.5);
-                return rootMeanSquareVar;
-        }
+            return rootMeanSquareVar;
+
         }
     }
+}
     
 
     
